@@ -46,8 +46,20 @@ class ParseService extends Service
             $time = $this->getTime();
             $tagCount = UrlHelper::getTagCountByUrl($url.$one, getenv('SEARCH_TAG'));
             $processingTime = $this->getTime($time);
-            $result[] = new ReportItem($url.$one, $tagCount, round($processingTime,3));
+            $result[] = [
+                'url'      => $url.$one,
+                'tagCount' => $tagCount,
+                'time'     => round($processingTime,3),
+            ];
         }
+
+        $collection = collect($result);
+        $sortResult = $collection->sortBy('tagCount');
+
+        $result = [];
+        $sortResult->map(function ($item) use (&$result) {
+            $result[] = new ReportItem(...array_values($item));
+        });
 
         return $result;
     }
@@ -58,17 +70,19 @@ class ParseService extends Service
      */
     public function execute(ParseRequest $request)
     {
-        $data = null;
-        $key = str_replace('http://', '', $request->getUrl()->getUrlPath());
-        $item = $this->cache->getItem($key);
-        if($item->isMiss()) {
-            $data = $this->parse($request->getUrl()->getUrlPath());
-            $item->lock();
-            $item->set($data);
-            $item->expiresAfter(getenv('CACHE_EXPIRE'));
-            $this->cache->save($item);
-        }
-        $this->triggerEventSaveInTheStorage($item->get() ?? $data);
+        $data = $this->parse($request->getUrl()->getUrlPath());
+        $this->triggerEventSaveInTheStorage($data);
+//        $data = null;
+//        $key = str_replace('http://', '', $request->getUrl()->getUrlPath());
+//        $item = $this->cache->getItem($key);
+//        if($item->isMiss()) {
+//            $data = $this->parse($request->getUrl()->getUrlPath());
+//            $item->lock();
+//            $item->set($data);
+//            $item->expiresAfter(getenv('CACHE_EXPIRE'));
+//            $this->cache->save($item);
+//        }
+//        $this->triggerEventSaveInTheStorage($item->get() ?? $data);
     }
 
     /**

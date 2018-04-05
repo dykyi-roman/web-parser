@@ -1,6 +1,4 @@
-# READ ME FIRST
-
-Simple web parser
+# Simple web parser
 
 ## Usage package
 + command-bus
@@ -10,6 +8,7 @@ Simple web parser
 + phpdotenv
 + monolog
 + stash
++ collect
 
 ## Install
 + composer install && composer dumpautoload -o
