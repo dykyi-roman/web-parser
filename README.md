@@ -3,6 +3,7 @@
 ## Feature
 
 + use React PHP library
++ tests
 
 ## Usage package
 + command-bus
