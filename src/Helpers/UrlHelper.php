@@ -10,40 +10,60 @@ class UrlHelper
 {
     /**
      * @param string $url
-     * @return array
+     * @return mixed
      */
-    public static function getAllUrlsFromWebsite(string $url): array
+    private static function getSslPage(string $url)
     {
-        $result = [];
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_REFERER, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $result = curl_exec($ch);
+        curl_close($ch);
 
-        // need for parse ssl websites
-//        $arrContextOptions=array(
-//            "ssl"=>array(
-//                "verify_peer"=>false,
-//                "verify_peer_name"=>false,
-//            ),
-//        );
-//        $html = file_get_contents($url, false, $arrContextOptions);
-        $html = file_get_contents($url);
+        return $result;
+    }
+
+    /**
+     * @param string $url
+     * @return \DOMDocument
+     */
+    private static function getDOM(string $url): \DOMDocument
+    {
+        $html = self::getSslPage($url);
         $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML($html);
         libxml_clear_errors();
+
+        return $dom;
+    }
+
+    /**
+     * @param string $url
+     * @return array
+     */
+    public static function getAllUrlsFromWebsite(string $url): array
+    {
+        $dom = self::getDOM($url);
         $xpath = new \DOMXPath($dom);
         $nodes = $xpath->query('//a');
 
+        $result = [];
         foreach($nodes as $node) {
             $link = $node->getAttribute('href');
-            if (
-                (strpos($link,'http') !== false) ||
-                (strpos($link,'#') !== false)
-            ) {
-                continue;
+            if ($link[0] === '/')
+            {
+                $result[] = $url.$link;
+            }elseif ($link !== '#' || strpos($link, $url) !== false) {
+                $result[] = $link;
             }
-            $result[] = $link;
         }
 
-        return $result;
+        return array_unique($result);
     }
 
     /**
@@ -53,12 +73,8 @@ class UrlHelper
      */
     public static function getTagCountByUrl(string $url, $tag = 'img')
     {
-        $html = file_get_contents($url);
-        $dom = new \DOMDocument();
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($html);
-        libxml_clear_errors();
+       $dom = self::getDOM($url);
 
-        return $dom->getElementsByTagName($tag)->length;
+       return $dom->getElementsByTagName($tag)->length;
     }
 }

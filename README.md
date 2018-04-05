@@ -1,8 +1,11 @@
 # Simple web parser
 
+## Feature
+
++ use React PHP library
+
 ## Usage package
 + command-bus
-+ guzzle
 + symfony/http-foundation
 + symfony/event-dispatcher
 + phpdotenv

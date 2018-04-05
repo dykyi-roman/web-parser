@@ -44,10 +44,10 @@ class ParseService extends Service
         foreach ($urls as $one)
         {
             $time = $this->getTime();
-            $tagCount = UrlHelper::getTagCountByUrl($url.$one, getenv('SEARCH_TAG'));
+            $tagCount = UrlHelper::getTagCountByUrl($one, getenv('SEARCH_TAG'));
             $processingTime = $this->getTime($time);
             $result[] = [
-                'url'      => $url.$one,
+                'url'      => $one,
                 'tagCount' => $tagCount,
                 'time'     => round($processingTime,3),
             ];
@@ -70,19 +70,24 @@ class ParseService extends Service
      */
     public function execute(ParseRequest $request)
     {
+        if (getenv('CACHE_USAGE'))
+        {
+            $data = null;
+            $key = str_replace('http://', '', $request->getUrl()->getUrlPath());
+            $item = $this->cache->getItem($key);
+            if($item->isMiss()) {
+                $data = $this->parse($request->getUrl()->getUrlPath());
+                $item->lock();
+                $item->set($data);
+                $item->expiresAfter(getenv('CACHE_EXPIRE'));
+                $this->cache->save($item);
+            }
+            $this->triggerEventSaveInTheStorage($item->get() ?? $data);
+            exit;
+        }
+
         $data = $this->parse($request->getUrl()->getUrlPath());
         $this->triggerEventSaveInTheStorage($data);
-//        $data = null;
-//        $key = str_replace('http://', '', $request->getUrl()->getUrlPath());
-//        $item = $this->cache->getItem($key);
-//        if($item->isMiss()) {
-//            $data = $this->parse($request->getUrl()->getUrlPath());
-//            $item->lock();
-//            $item->set($data);
-//            $item->expiresAfter(getenv('CACHE_EXPIRE'));
-//            $this->cache->save($item);
-//        }
-//        $this->triggerEventSaveInTheStorage($item->get() ?? $data);
     }
 
     /**
