@@ -2,10 +2,13 @@
 
 namespace Dykyi\Services\ParseService;
 
+use Clue\React\Buzz\Browser;
 use Dykyi\Helpers\UrlHelper;
 use Dykyi\Services\Events\Event\SaveFileInTheStorageEvent;
+use Dykyi\Services\Parser;
 use Dykyi\Services\Service;
 use Dykyi\ValueObjects\ReportItem;
+use React\EventLoop\Factory;
 use Stash\Interfaces\DriverInterface;
 use Stash\Pool;
 
@@ -25,38 +28,22 @@ class ParseService extends Service
     }
 
     /**
-     * @param bool $time
-     * @return bool|mixed
-     */
-    protected function getTime($time = false)
-    {
-        return $time === false ? microtime(true) : microtime(true) - $time;
-    }
-
-    /**
      * @param string $url
      * @return array
      */
     private function parse(string $url): array
     {
         $result = [];
-        $urls = UrlHelper::getAllUrlsFromWebsite($url);
-        foreach ($urls as $one)
-        {
-            $time = $this->getTime();
-            $tagCount = UrlHelper::getTagCountByUrl($one, getenv('SEARCH_TAG'));
-            $processingTime = $this->getTime($time);
-            $result[] = [
-                'url'      => $one,
-                'tagCount' => $tagCount,
-                'time'     => round($processingTime,3),
-            ];
-        }
+//        $urls = UrlHelper::getAllUrlsFromWebsite($url);
+        $urls = ['https://m.rozetka.com.ua/'];
+        $loop = Factory::create();
+        $parser = new Parser(new Browser($loop), $loop);
+        $parser->parse($urls, 2);
+        $loop->run();
 
-        $collection = collect($result);
+        $collection = collect($parser->getData());
         $sortResult = $collection->sortBy('tagCount');
 
-        $result = [];
         $sortResult->map(function ($item) use (&$result) {
             $result[] = new ReportItem(...array_values($item));
         });

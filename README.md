@@ -2,7 +2,6 @@
 
 ## Feature
 
-+ use React PHP library
 + tests
 
 ## Usage package
@@ -13,6 +12,7 @@
 + monolog
 + stash
 + collect
++ php react
 
 ## Install
 + composer install && composer dumpautoload -o

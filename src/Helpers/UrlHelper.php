@@ -67,14 +67,17 @@ class UrlHelper
     }
 
     /**
-     * @param string $url
+     * @param string $html
      * @param string $tag
      * @return int
      */
-    public static function getTagCountByUrl(string $url, $tag = 'img')
+    public static function getTagCountByUrl(string $html, string $tag)
     {
-       $dom = self::getDOM($url);
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($html);
+        libxml_clear_errors();
 
-       return $dom->getElementsByTagName($tag)->length;
+        return $dom->getElementsByTagName($tag)->length;
     }
 }

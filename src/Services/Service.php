@@ -4,7 +4,6 @@ namespace Dykyi\Services;
 
 use Dykyi\Services\Events\Dispatcher;
 use Dykyi\Services\ParseService\ParseRequest;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class Service
