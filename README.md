@@ -1,5 +1,7 @@
 # Simple web parser
 
+Use ReactPHP's EventLoop to process multiple requests in parallel. This allows you to interact with multiple HTTP servers (fetch URLs, talk to RESTful APIs, follow redirects etc.) at the same time. Unlike the underlying react/http-client, this project aims at providing a higher-level API that is easy to use in order to process multiple HTTP requests concurrently without having to mess with most of the low-level details.
+
 ## Feature
 
 + tests
